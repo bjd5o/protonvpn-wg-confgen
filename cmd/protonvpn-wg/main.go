@@ -48,12 +48,6 @@ func run() error {
 	// Create VPN client
 	vpnClient := vpn.NewClient(cfg, session)
 
-	// Get VPN certificate
-	vpnInfo, err := vpnClient.GetCertificate(keyPair)
-	if err != nil {
-		return fmt.Errorf("failed to get VPN certificate: %w", err)
-	}
-
 	// Get server list
 	servers, err := vpnClient.GetServers()
 	if err != nil {
@@ -82,6 +76,12 @@ func run() error {
 	physicalServer := vpn.GetBestPhysicalServer(server)
 	if physicalServer == nil {
 		return fmt.Errorf("no physical servers available")
+	}
+
+	// Get VPN certificate, now that we know which server we're connecting to
+	vpnInfo, err := vpnClient.GetCertificate(keyPair, server, physicalServer)
+	if err != nil {
+		return fmt.Errorf("failed to get VPN certificate: %w", err)
 	}
 
 	// Generate WireGuard configuration

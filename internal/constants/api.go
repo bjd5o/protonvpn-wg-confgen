@@ -1,6 +1,8 @@
 // Package constants defines constants used throughout the application.
 package constants
 
+import "runtime"
+
 // API endpoints
 const (
 	DefaultAPIURL   = "https://vpn-api.proton.me"
@@ -35,3 +37,20 @@ const (
 	StatusOnline = 1
 	EnabledTrue  = 1
 )
+
+// CertPlatform returns the platform identifier to send in certificate requests,
+// mapped from the current OS to the values expected by the ProtonVPN API.
+func CertPlatform() string {
+	switch runtime.GOOS {
+	case "darwin":
+		return "macOS"
+	case "windows":
+		return "Windows"
+	case "android":
+		return "Android"
+	case "ios":
+		return "iOS"
+	default:
+		return "Linux"
+	}
+}
