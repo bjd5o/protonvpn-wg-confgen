@@ -33,8 +33,8 @@ func NewClient(cfg *config.Config, session *api.Session) *Client {
 	}
 }
 
-// GetCertificate generates a VPN certificate
-func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) {
+// GetCertificate generates a VPN certificate for the given logical and physical server
+func (c *Client) GetCertificate(keyPair *ed25519.KeyPair, logical *api.LogicalServer, physical *api.PhysicalServer) (*api.VPNInfo, error) {
 	publicKeyPEM, err := keyPair.PublicKeyPKIXPem()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get public key PEM: %w", err)
@@ -65,6 +65,10 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 			"RandomNAT":      false,                      // Moderate NAT disabled
 			"PortForwarding": false,                      // Port forwarding disabled
 			"SplitTCP":       c.config.EnableAccelerator, // VPN Accelerator (called SplitTCP in API)
+			"peerIp":         physical.EntryIP,
+			"peerName":       logical.Name,
+			"peerPublicKey":  physical.X25519PublicKey,
+			"platform":       constants.CertPlatform(),
 		},
 	}
 
