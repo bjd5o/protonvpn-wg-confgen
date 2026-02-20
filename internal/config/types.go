@@ -20,10 +20,11 @@ type Config struct {
 	DeviceName       string
 
 	// Network configuration
-	DNSServers        []string
-	AllowedIPs        []string
-	EnableAccelerator bool
-	EnableIPv6        bool
+	DNSServers          []string
+	AllowedIPs          []string
+	EnableAccelerator   bool
+	EnableIPv6          bool
+	PreserveDefaultSrc  bool
 
 	// Certificate configuration
 	Duration string

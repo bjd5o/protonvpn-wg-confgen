@@ -76,6 +76,77 @@ func TestConfigGeneration(t *testing.T) {
 	}
 }
 
+func TestConfigGenerationWithPreserveDefaultSrc(t *testing.T) {
+	cfg := &config.Config{
+		DNSServers:         []string{"10.2.0.1"},
+		AllowedIPs:         []string{"0.0.0.0/0"},
+		OutputFile:         "test.conf",
+		PreserveDefaultSrc: true,
+	}
+
+	generator := NewConfigGenerator(cfg)
+
+	server := &api.LogicalServer{Name: "Test-Server"}
+	physicalServer := &api.PhysicalServer{
+		EntryIP:         "192.168.1.1",
+		X25519PublicKey: "testPublicKey123=",
+	}
+
+	result, err := generator.buildConfig(server, physicalServer, "testPrivateKey456=")
+	if err != nil {
+		t.Fatalf("buildConfig failed: %v", err)
+	}
+
+	expectedHooks := []string{
+		"PostUp  = ip rule add from $(ip -4 route show default | grep -oP 'src \\K[\\d.]+') lookup main",
+		"PreDown = ip rule del from $(ip -4 route show default | grep -oP 'src \\K[\\d.]+') lookup main",
+	}
+	for _, hook := range expectedHooks {
+		if !strings.Contains(result, hook) {
+			t.Errorf("Expected config to contain %q\nGot:\n%s", hook, result)
+		}
+	}
+
+	// Hooks must appear inside [Interface], before [Peer]
+	interfaceIdx := strings.Index(result, "[Interface]")
+	peerIdx := strings.Index(result, "[Peer]")
+	postUpIdx := strings.Index(result, "PostUp")
+	preDownIdx := strings.Index(result, "PreDown")
+
+	if postUpIdx < interfaceIdx || postUpIdx > peerIdx {
+		t.Error("PostUp hook should appear in [Interface] section, before [Peer]")
+	}
+	if preDownIdx < interfaceIdx || preDownIdx > peerIdx {
+		t.Error("PreDown hook should appear in [Interface] section, before [Peer]")
+	}
+}
+
+func TestConfigGenerationWithoutPreserveDefaultSrc(t *testing.T) {
+	cfg := &config.Config{
+		DNSServers:         []string{"10.2.0.1"},
+		AllowedIPs:         []string{"0.0.0.0/0"},
+		OutputFile:         "test.conf",
+		PreserveDefaultSrc: false,
+	}
+
+	generator := NewConfigGenerator(cfg)
+
+	server := &api.LogicalServer{Name: "Test-Server"}
+	physicalServer := &api.PhysicalServer{
+		EntryIP:         "192.168.1.1",
+		X25519PublicKey: "testPublicKey123=",
+	}
+
+	result, err := generator.buildConfig(server, physicalServer, "testPrivateKey456=")
+	if err != nil {
+		t.Fatalf("buildConfig failed: %v", err)
+	}
+
+	if strings.Contains(result, "PostUp") || strings.Contains(result, "PreDown") {
+		t.Errorf("Expected no PostUp/PreDown hooks when PreserveDefaultSrc=false\nGot:\n%s", result)
+	}
+}
+
 func TestConfigGenerationWithIPv6(t *testing.T) {
 	cfg := &config.Config{
 		DNSServers: []string{"10.2.0.1", "2a07:b944::2:1"},
