@@ -25,6 +25,7 @@ type Config struct {
 	EnableAccelerator   bool
 	EnableIPv6          bool
 	PreserveDefaultSrc  bool
+	FWMark              int
 
 	// Certificate configuration
 	Duration string
