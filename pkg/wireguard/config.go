@@ -19,6 +19,10 @@ const wireguardConfigTemplate = `[Interface]
 PrivateKey = {{.PrivateKey}}
 {{.AddressLine}}
 DNS = {{.DNS}}
+{{- if .PreserveDefaultSrc}}
+PostUp  = ip rule add from $(ip -4 route show default | grep -oP 'src \K[\d.]+') lookup main
+PreDown = ip rule del from $(ip -4 route show default | grep -oP 'src \K[\d.]+') lookup main
+{{- end}}
 
 [Peer]
 PublicKey = {{.PublicKey}}
@@ -28,13 +32,14 @@ Endpoint = {{.Endpoint}}:{{.Port}}
 
 // configData holds the data for the WireGuard config template
 type configData struct {
-	PrivateKey  string
-	AddressLine string
-	DNS         string
-	PublicKey   string
-	AllowedIPs  string
-	Endpoint    string
-	Port        int
+	PrivateKey         string
+	AddressLine        string
+	DNS                string
+	PreserveDefaultSrc bool
+	PublicKey          string
+	AllowedIPs         string
+	Endpoint           string
+	Port               int
 }
 
 // ConfigGenerator generates WireGuard configuration files
@@ -71,13 +76,14 @@ func (g *ConfigGenerator) buildConfig(server *api.LogicalServer, physicalServer 
 	metadata := g.buildMetadata(server, physicalServer)
 
 	data := configData{
-		PrivateKey:  privateKey,
-		AddressLine: g.buildAddressLine(),
-		DNS:         strings.Join(g.config.DNSServers, ", "),
-		PublicKey:   physicalServer.X25519PublicKey,
-		AllowedIPs:  strings.Join(g.config.AllowedIPs, ", "),
-		Endpoint:    physicalServer.EntryIP,
-		Port:        constants.WireGuardPort,
+		PrivateKey:         privateKey,
+		AddressLine:        g.buildAddressLine(),
+		DNS:                strings.Join(g.config.DNSServers, ", "),
+		PreserveDefaultSrc: g.config.PreserveDefaultSrc,
+		PublicKey:          physicalServer.X25519PublicKey,
+		AllowedIPs:         strings.Join(g.config.AllowedIPs, ", "),
+		Endpoint:           physicalServer.EntryIP,
+		Port:               constants.WireGuardPort,
 	}
 
 	var buf bytes.Buffer
