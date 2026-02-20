@@ -3,6 +3,7 @@ package constants
 // WireGuard defaults
 const (
 	WireGuardPort = 51820
+	WireGuardFWMark = 51820 // Firewall mark for WireGuard tunnel packets (matches default port)
 	DefaultMTU    = 1420
 
 	// IPv4 configuration

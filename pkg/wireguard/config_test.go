@@ -6,6 +6,7 @@ import (
 
 	"protonvpn-wg-confgen/internal/api"
 	"protonvpn-wg-confgen/internal/config"
+	"protonvpn-wg-confgen/internal/constants"
 )
 
 func TestConfigGeneration(t *testing.T) {
@@ -13,6 +14,7 @@ func TestConfigGeneration(t *testing.T) {
 		DNSServers: []string{"10.2.0.1"},
 		AllowedIPs: []string{"0.0.0.0/0"},
 		OutputFile: "test.conf",
+		FWMark:     constants.WireGuardFWMark,
 	}
 
 	generator := NewConfigGenerator(cfg)
@@ -57,6 +59,7 @@ func TestConfigGeneration(t *testing.T) {
 		"PrivateKey = testPrivateKey456=",
 		"Address = 10.2.0.2/32",
 		"DNS = 10.2.0.1",
+		"FwMark = 51820",
 		"PublicKey = testPublicKey123=",
 		"AllowedIPs = 0.0.0.0/0",
 		"Endpoint = 192.168.1.1:51820",
@@ -81,6 +84,7 @@ func TestConfigGenerationWithPreserveDefaultSrc(t *testing.T) {
 		DNSServers:         []string{"10.2.0.1"},
 		AllowedIPs:         []string{"0.0.0.0/0"},
 		OutputFile:         "test.conf",
+		FWMark:             constants.WireGuardFWMark,
 		PreserveDefaultSrc: true,
 	}
 
@@ -126,6 +130,7 @@ func TestConfigGenerationWithoutPreserveDefaultSrc(t *testing.T) {
 		DNSServers:         []string{"10.2.0.1"},
 		AllowedIPs:         []string{"0.0.0.0/0"},
 		OutputFile:         "test.conf",
+		FWMark:             constants.WireGuardFWMark,
 		PreserveDefaultSrc: false,
 	}
 
@@ -152,6 +157,7 @@ func TestConfigGenerationWithIPv6(t *testing.T) {
 		DNSServers: []string{"10.2.0.1", "2a07:b944::2:1"},
 		AllowedIPs: []string{"0.0.0.0/0", "::/0"},
 		OutputFile: "test.conf",
+		FWMark:     constants.WireGuardFWMark,
 		EnableIPv6: true,
 	}
 

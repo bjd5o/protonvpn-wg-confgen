@@ -19,6 +19,7 @@ const wireguardConfigTemplate = `[Interface]
 PrivateKey = {{.PrivateKey}}
 {{.AddressLine}}
 DNS = {{.DNS}}
+FwMark = {{.FWMark}}
 {{- if .PreserveDefaultSrc}}
 PostUp  = ip rule add from $(ip -4 route show default | grep -oP 'src \K[\d.]+') lookup main
 PreDown = ip rule del from $(ip -4 route show default | grep -oP 'src \K[\d.]+') lookup main
@@ -35,6 +36,7 @@ type configData struct {
 	PrivateKey         string
 	AddressLine        string
 	DNS                string
+	FWMark             int
 	PreserveDefaultSrc bool
 	PublicKey          string
 	AllowedIPs         string
@@ -79,6 +81,7 @@ func (g *ConfigGenerator) buildConfig(server *api.LogicalServer, physicalServer 
 		PrivateKey:         privateKey,
 		AddressLine:        g.buildAddressLine(),
 		DNS:                strings.Join(g.config.DNSServers, ", "),
+		FWMark:             g.config.FWMark,
 		PreserveDefaultSrc: g.config.PreserveDefaultSrc,
 		PublicKey:          physicalServer.X25519PublicKey,
 		AllowedIPs:         strings.Join(g.config.AllowedIPs, ", "),
